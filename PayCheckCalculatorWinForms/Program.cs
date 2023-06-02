@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace PayCheckCalculatorWinFroms
+namespace PayCheckCalculatorWinForms
 {
     static class Program
     {
