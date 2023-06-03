@@ -49,6 +49,9 @@
         <Compile Include="CustomComponents\DataGridViewDateTimePickerCell.cs" />
         <Compile Include="CustomComponents\DataGridViewDateTimePickerColumn.cs" />
         <Compile Include="CustomComponents\DataGridViewDateTimePickerEditingControl.cs" />
+        <Compile Include="CustomComponents\DataGridViewTimePickerCell.cs" />
+        <Compile Include="CustomComponents\DataGridViewTimePickerColumn.cs" />
+        <Compile Include="CustomComponents\DataGridViewTimePickerEditingControl.cs" />
         <Compile Include="Form1.cs">
             <SubType>Form</SubType>
         </Compile>

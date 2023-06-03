@@ -3,25 +3,26 @@ using System.Windows.Forms;
 
 namespace PayCheckCalculatorWinForms.CustomComponents
 {
-    public class DataGridViewDateTimePickerEditingControl : DateTimePicker, IDataGridViewEditingControl
+    public class DataGridViewTimePickerEditingControl : DateTimePicker, IDataGridViewEditingControl
     {
-        public DataGridViewDateTimePickerEditingControl()
+        public DataGridViewTimePickerEditingControl()
         {
             Format = DateTimePickerFormat.Custom;
-            CustomFormat = "dd/MM/yyyy";
+            CustomFormat = "HH:mm";
+            ShowUpDown = true;
         }
 
-        public int EditingControlRowIndex { get; set; }
+        public bool RepositionEditingControlOnValueChange => false;
 
-        public bool EditingControlValueChanged { get; set; }
+        public Cursor EditingPanelCursor => base.Cursor;
         public DataGridView EditingControlDataGridView { get; set; }
 
-        public bool RepositionEditingControlOnValueChange => false;
-        public Cursor EditingPanelCursor => base.Cursor;
+        public int EditingControlRowIndex { get; set; }
+        public bool EditingControlValueChanged { get; set; }
 
         public object EditingControlFormattedValue
         {
-            get => Value.ToString("dd/MM/yyyy");
+            get => Value.ToString("HH:mm");
             set
             {
                 if (value is String)
@@ -42,7 +43,6 @@ namespace PayCheckCalculatorWinForms.CustomComponents
             CalendarForeColor = dataGridViewCellStyle.ForeColor;
             CalendarMonthBackground = dataGridViewCellStyle.BackColor;
         }
-
 
         public bool EditingControlWantsInputKey(Keys key, bool dataGridViewWantsInputKey)
         {

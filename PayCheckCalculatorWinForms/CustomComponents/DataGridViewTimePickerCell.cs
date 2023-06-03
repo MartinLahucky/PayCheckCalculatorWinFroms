@@ -3,32 +3,31 @@ using System.Windows.Forms;
 
 namespace PayCheckCalculatorWinForms.CustomComponents
 {
-    public class DataGridViewDateTimePickerCell : DataGridViewTextBoxCell
+    public class DataGridViewTimePickerCell : DataGridViewTextBoxCell
     {
-        public DataGridViewDateTimePickerCell()
+        public DataGridViewTimePickerCell()
         {
-            Style.Format = "dd/MM/yyyy";
+            Style.Format = "HH:mm";
         }
 
-        public override Type EditType => typeof(DataGridViewDateTimePickerEditingControl);
+        public override Type EditType => typeof(DataGridViewTimePickerEditingControl);
 
         public override Type ValueType => typeof(DateTime);
-        public override object DefaultNewRowValue { get; } = DateTime.Now;
+        public override object DefaultNewRowValue => DateTime.Now;
 
         public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,
             DataGridViewCellStyle dataGridViewCellStyle)
         {
             base.InitializeEditingControl(rowIndex, initialFormattedValue, dataGridViewCellStyle);
-            var ctl =
-                DataGridView.EditingControl as DataGridViewDateTimePickerEditingControl;
+            var ctl = DataGridView.EditingControl as DataGridViewTimePickerEditingControl;
             if (Value == null)
             {
-                var defaultNewRowValue = this.DefaultNewRowValue;
+                var defaultNewRowValue = DefaultNewRowValue;
                 if (defaultNewRowValue != null) ctl.Value = (DateTime)defaultNewRowValue;
             }
             else
             {
-                if (ctl != null) ctl.Value = (DateTime)this.Value;
+                ctl.Value = (DateTime)Value;
             }
         }
     }
