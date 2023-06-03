@@ -13,6 +13,7 @@ namespace PayCheckCalculatorWinForms.CustomComponents
         public override Type EditType => typeof(DataGridViewTimePickerEditingControl);
 
         public override Type ValueType => typeof(DateTime);
+
         public override object DefaultNewRowValue => DateTime.Now;
 
         public override void InitializeEditingControl(int rowIndex, object initialFormattedValue,

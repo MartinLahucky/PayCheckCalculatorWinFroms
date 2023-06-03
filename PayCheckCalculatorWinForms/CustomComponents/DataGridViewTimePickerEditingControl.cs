@@ -64,7 +64,6 @@ namespace PayCheckCalculatorWinForms.CustomComponents
 
         public void PrepareEditingControlForEdit(bool selectAll)
         {
-            // This has to be here otherwise it doesn't work
         }
 
         protected override void OnValueChanged(EventArgs eventargs)

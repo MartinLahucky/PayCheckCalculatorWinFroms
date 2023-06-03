@@ -8,7 +8,7 @@ namespace PayCheckCalculatorWinForms.CustomComponents
         public DataGridViewTimePickerColumn() : base(new DataGridViewTimePickerCell())
         {
         }
-
+        // Necessary override 
         public override DataGridViewCell CellTemplate
         {
             get => base.CellTemplate;

@@ -9,18 +9,43 @@ namespace PayCheckCalculatorWinForms
 {
     public partial class Form1 : Form
     {
+        private Timer timer1 = new Timer();
+
         public Form1()
         {
             InitializeComponent();
+            // Sets time
+            SetTime();
+            // Timer used for updating current time every second
+            timer1.Start();
+            timer1.Interval = 1000;
+            timer1.Tick += Timer1_Tick;
         }
 
+        // Prepares form
         private void Form1_Load(object sender, EventArgs e)
         {
             PrepareForm();
+            // Sets default values StartTime and EndTime
             dataGridView1.CellEndEdit += CellEChanged;
+            // Sets default values for time 
             dataGridView1.DefaultValuesNeeded += SetDefaultTimes;
         }
 
+        // Sets time
+        private void Timer1_Tick(object sender, EventArgs e)
+        {
+            SetTime();
+        }
+
+        private void SetTime()
+        {
+            label1.Text = DateTime.Now.Second % 2 == 0
+                ? $"Současný čas: {DateTime.Now.ToString("HH:mm:ss")}"
+                : $"Současný čas: {DateTime.Now.ToString("HH mm ss")}";
+        }
+
+        // Creates columns in DataGridView
         private void PrepareForm()
         {
             // Columns in DataGridView
@@ -70,6 +95,7 @@ namespace PayCheckCalculatorWinForms
             SetDefaultTime(e.Row);
         }
 
+        // Import to CSV
         private void ImportToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog
@@ -108,6 +134,7 @@ namespace PayCheckCalculatorWinForms
             }
         }
 
+        // Export to CSV
         private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var saveFileDialog = new SaveFileDialog
@@ -198,6 +225,7 @@ namespace PayCheckCalculatorWinForms
             }
         }
 
+        // Terminates app
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Opravdu chcete ukončit aplikaci?", "Ukončit", MessageBoxButtons.YesNo) ==
@@ -208,38 +236,43 @@ namespace PayCheckCalculatorWinForms
         }
 
         // Different name because of shadowing
+        // Counts hours from StartTime and EndTime and puts them to Hours column
         private void CellEChanged(object sender, DataGridViewCellEventArgs e)
         {
-            try
+            if (e.RowIndex >= 0 && !dataGridView1.Rows[e.RowIndex].IsNewRow)
             {
-                if (e.RowIndex >= 0 && !dataGridView1.Rows[e.RowIndex].IsNewRow)
+                var row = dataGridView1.Rows[e.RowIndex];
+                if (dataGridView1.Columns.Contains("StartTime") && dataGridView1.Columns.Contains("EndTime") &&
+                    dataGridView1.Columns.Contains("Hours"))
                 {
-                    var row = dataGridView1.Rows[e.RowIndex];
-                    if (dataGridView1.Columns.Contains("StartTime") && dataGridView1.Columns.Contains("EndTime") &&
-                        dataGridView1.Columns.Contains("Hours"))
-                    {
-                        var startValue = row.Cells["StartTime"].Value;
-                        var endValue = row.Cells["EndTime"].Value;
+                    var startValue = row.Cells["StartTime"].Value;
+                    var endValue = row.Cells["EndTime"].Value;
 
-                        if (startValue != null && endValue != null &&
-                            DateTime.TryParse(startValue.ToString(), out DateTime startTime) &&
-                            DateTime.TryParse(endValue.ToString(), out DateTime endTime))
-                        {
-                            row.Cells["Hours"].Value =
-                                (endTime.TimeOfDay - startTime.TimeOfDay).TotalHours.ToString("0.00");
-                        }
-                        else
-                        {
-                            row.Cells["Hours"].Value = "";
-                        }
+                    if (startValue != null && endValue != null &&
+                        DateTime.TryParse(startValue.ToString(), out DateTime startTime) &&
+                        DateTime.TryParse(endValue.ToString(), out DateTime endTime))
+                    {
+                        row.Cells["Hours"].Value =
+                            (endTime.TimeOfDay - startTime.TimeOfDay).TotalHours.ToString("0.00");
+                    }
+                    else
+                    {
+                        row.Cells["Hours"].Value = "";
                     }
                 }
             }
-            catch (Exception ex)
+        }
+
+        // Counts all hours from project 
+        private void Summary(object sender, EventArgs e)
+        {
+            double totalHours = 0;
+            for (int i = 0; i < dataGridView1.Rows.Count - 1; i++)
             {
-                MessageBox.Show("Chyba při zpracování změny hodnoty buňky: " + ex.Message);
-                Console.WriteLine(ex.Message);
+                totalHours += Convert.ToDouble(dataGridView1.Rows[i].Cells["Hours"].Value);
             }
+
+            MessageBox.Show($"Celkový počet odpracovaných hodin je {totalHours}", "Součet hodin");
         }
     }
 }
