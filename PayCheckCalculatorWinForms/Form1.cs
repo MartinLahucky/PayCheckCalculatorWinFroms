@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Data;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using System.Linq;
 using System.Windows.Forms;
 using PayCheckCalculatorWinForms.CustomComponents;
 
@@ -69,71 +69,132 @@ namespace PayCheckCalculatorWinForms
         {
             SetDefaultTime(e.Row);
         }
-        
-        private void importToolStripMenuItem_Click(object sender, EventArgs e)
+
+        private void ImportToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "CSV soubory (*.csv)|*.csv|Všechny soubory (*.*)|*.*";
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "CSV (*.csv)|*.csv",
+                FileName = "Import.csv"
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                var dataTable = new DataTable();
-                using (StreamReader sr = new StreamReader(openFileDialog.FileName))
+                dataGridView1.Rows.Clear();
+
+                using (StreamReader reader = new StreamReader(openFileDialog.FileName))
                 {
-                    var headers = sr.ReadLine().Split(',');
-                    foreach (var header in headers)
+                    // Load header
+                    var headerLine = reader.ReadLine();
+                    if (headerLine != null)
                     {
-                        dataTable.Columns.Add(header);
+                        var headerValues = headerLine.Split(',');
+
+                        for (int i = 0; i < headerValues.Length && i < dataGridView1.Columns.Count; i++)
+                        {
+                            dataGridView1.Columns[i].HeaderText = headerValues[i];
+                        }
                     }
 
-                    while (!sr.EndOfStream)
+                    // Load data
+                    while (!reader.EndOfStream)
                     {
-                        var rows = sr.ReadLine().Split(',');
-                        var dataRow = dataTable.NewRow();
-                        for (int i = 0; i < headers.Length; i++)
-                        {
-                            dataRow[i] = rows[i];
-                        }
-
-                        dataTable.Rows.Add(dataRow);
+                        var line = reader.ReadLine();
+                        if (line == null) continue;
+                        var values = line.Split(',');
+                        dataGridView1.Rows.Add(values);
                     }
                 }
-
-                dataGridView1.DataSource = dataTable;
             }
         }
 
-        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            var saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "CSV soubory (*.csv)|*.csv|Všechny soubory (*.*)|*.*";
-
-            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            var saveFileDialog = new SaveFileDialog
             {
-                var sb = new StringBuilder();
-                var columnNames = new string[dataGridView1.Columns.Count];
-                for (int i = 0; i < dataGridView1.Columns.Count; i++)
+                Filter = "CSV (*.csv)|*.csv",
+                FileName = "Export.csv"
+            };
+
+            if (saveFileDialog.ShowDialog() != DialogResult.OK) return;
+            var hasIncompleteRows = false;
+
+            // Check for incomplete rows
+            for (int i = 0; i < dataGridView1.Rows.Count; i++)
+            {
+                DataGridViewRow row = dataGridView1.Rows[i];
+
+                if (row.IsNewRow) continue;
+                var hasEmptyCell = false;
+
+                for (int j = 0; j < row.Cells.Count; j++)
                 {
-                    columnNames[i] = dataGridView1.Columns[i].HeaderText;
+                    var cell = row.Cells[j];
+                    if (cell.Value != null && !string.IsNullOrWhiteSpace(cell.Value.ToString())) continue;
+                    // If last row is incomplete, don't show warning
+                    if (i == dataGridView1.Rows.Count - 2 && j == 0)
+                    {
+                        break;
+                    }
+
+                    hasEmptyCell = true;
                 }
 
-                sb.AppendLine(string.Join(",", columnNames));
+                if (!hasEmptyCell) continue;
+                hasIncompleteRows = true;
+                break;
+            }
 
-                foreach (DataGridViewRow row in dataGridView1.Rows)
+            if (hasIncompleteRows)
+            {
+                var result =
+                    MessageBox.Show(
+                        "Některé řádky obsahují prázdné buňky a nebudou exportovány. Chcete pokračovat v exportu?",
+                        "Upozornění na možnou ztrátu dat", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                if (result == DialogResult.No)
                 {
-                    if (!row.IsNewRow)
-                    {
-                        var cellValues = new string[row.Cells.Count];
-                        for (int i = 0; i < row.Cells.Count; i++)
-                        {
-                            cellValues[i] = row.Cells[i].Value.ToString();
-                        }
+                    return;
+                }
+            }
 
-                        sb.AppendLine(string.Join(",", cellValues));
+            using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
+            {
+                // Header
+                var columnNames = dataGridView1.Columns
+                    .Cast<DataGridViewColumn>()
+                    .Select(column => column.HeaderText)
+                    .ToArray();
+                writer.WriteLine(string.Join(",", columnNames));
+
+                // Data
+                // For loop to avoid last row being written 
+                for (int i = 0; i < dataGridView1.Rows.Count - 1; i++)
+                {
+                    var row = dataGridView1.Rows[i];
+
+                    if (row.IsNewRow) continue;
+                    var hasEmptyCell = false;
+                    var rowData = new List<string>();
+
+                    foreach (DataGridViewCell cell in row.Cells)
+                    {
+                        if (cell.Value == null || string.IsNullOrWhiteSpace(cell.Value.ToString()))
+                        {
+                            hasEmptyCell = true;
+                            rowData.Add("");
+                        }
+                        else
+                        {
+                            rowData.Add(cell.Value.ToString());
+                        }
+                    }
+
+                    if (!hasEmptyCell)
+                    {
+                        writer.WriteLine(string.Join(",", rowData));
                     }
                 }
-
-                File.WriteAllText(saveFileDialog.FileName, sb.ToString());
             }
         }
 
@@ -145,6 +206,7 @@ namespace PayCheckCalculatorWinForms
                 Application.Exit();
             }
         }
+
         // Different name because of shadowing
         private void CellEChanged(object sender, DataGridViewCellEventArgs e)
         {

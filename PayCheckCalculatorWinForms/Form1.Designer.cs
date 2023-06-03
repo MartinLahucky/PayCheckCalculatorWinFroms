@@ -65,12 +65,14 @@
             this.importToolStripMenuItem.Name = "importToolStripMenuItem";
             this.importToolStripMenuItem.Size = new System.Drawing.Size(161, 36);
             this.importToolStripMenuItem.Text = "Import";
+            this.importToolStripMenuItem.Click += new System.EventHandler(this.ImportToolStripMenuItem_Click);
             // 
             // exportToolStripMenuItem
             // 
             this.exportToolStripMenuItem.Name = "exportToolStripMenuItem";
             this.exportToolStripMenuItem.Size = new System.Drawing.Size(161, 36);
             this.exportToolStripMenuItem.Text = "Export";
+            this.exportToolStripMenuItem.Click += new System.EventHandler(this.ExportToolStripMenuItem_Click);
             // 
             // zavřítAplikaciToolStripMenuItem
             // 
@@ -104,7 +106,7 @@
             // 
             // label2
             // 
-            this.label2.Location = new System.Drawing.Point(12, 511);
+            this.label2.Location = new System.Drawing.Point(33, 614);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(100, 23);
             this.label2.TabIndex = 3;
@@ -112,7 +114,7 @@
             // 
             // label3
             // 
-            this.label3.Location = new System.Drawing.Point(410, 550);
+            this.label3.Location = new System.Drawing.Point(321, 614);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(100, 23);
             this.label3.TabIndex = 4;
