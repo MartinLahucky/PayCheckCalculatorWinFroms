@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -101,34 +102,69 @@ namespace PayCheckCalculatorWinForms
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "CSV (*.csv)|*.csv",
-                FileName = "Import.csv"
+                FileName = "Export.csv"
             };
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog() != DialogResult.OK) return;
+            dataGridView1.Rows.Clear();
+
+            using (StreamReader reader = new StreamReader(openFileDialog.FileName))
             {
-                dataGridView1.Rows.Clear();
+                // Load header
+                var headerLine = reader.ReadLine();
+                if (headerLine == null) return;
+                var headerValues = headerLine.Split(',');
 
-                using (StreamReader reader = new StreamReader(openFileDialog.FileName))
+                for (int i = 0; i < headerValues.Length && i < dataGridView1.Columns.Count; i++)
                 {
-                    // Load header
-                    var headerLine = reader.ReadLine();
-                    if (headerLine != null)
-                    {
-                        var headerValues = headerLine.Split(',');
+                    dataGridView1.Columns[i].HeaderText = headerValues[i];
+                }
 
-                        for (int i = 0; i < headerValues.Length && i < dataGridView1.Columns.Count; i++)
+                // Load data
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    if (line == null) continue;
+                    var values = line.Split(',');
+                    var newRow = dataGridView1.Rows[dataGridView1.Rows.Add()];
+
+                    for (int i = 0; i < values.Length && i < newRow.Cells.Count; i++)
+                    {
+                        var cell = newRow.Cells[i];
+                        var value = values[i];
+
+                        if (cell is DataGridViewTextBoxCell)
                         {
-                            dataGridView1.Columns[i].HeaderText = headerValues[i];
+                            cell.Value = value;
                         }
-                    }
+                        else
+                            switch (cell)
+                            {
+                                case DataGridViewDateTimePickerCell _:
+                                {
+                                    if (DateTime.TryParse(value, out DateTime dateValue))
+                                    {
+                                        cell.Value = dateValue;
+                                    }
 
-                    // Load data
-                    while (!reader.EndOfStream)
-                    {
-                        var line = reader.ReadLine();
-                        if (line == null) continue;
-                        var values = line.Split(',');
-                        dataGridView1.Rows.Add(values);
+                                    break;
+                                }
+                                case DataGridViewTimePickerCell _:
+                                {
+                                    // Parse for StartTime and EndTime
+                                    var timeFormat = "HH:mm";
+                                    if (DateTime.TryParseExact(value, timeFormat, CultureInfo.InvariantCulture,
+                                            DateTimeStyles.None, out DateTime timeValue))
+                                    {
+                                        cell.Value = timeValue;
+                                    }
+
+                                    break;
+                                }
+                                default:
+                                    // Default case for unknown cell types
+                                    break;
+                            }
                     }
                 }
             }
@@ -149,7 +185,7 @@ namespace PayCheckCalculatorWinForms
             // Check for incomplete rows
             for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                DataGridViewRow row = dataGridView1.Rows[i];
+                var row = dataGridView1.Rows[i];
 
                 if (row.IsNewRow) continue;
                 var hasEmptyCell = false;
@@ -213,7 +249,16 @@ namespace PayCheckCalculatorWinForms
                         }
                         else
                         {
-                            rowData.Add(cell.Value.ToString());
+                            if (cell is DataGridViewTimePickerCell)
+                            {
+                                var dateTimeValue = (DateTime)cell.Value;
+                                var formattedValue = dateTimeValue.ToString("HH:mm");
+                                rowData.Add(formattedValue);
+                            }
+                            else
+                            {
+                                rowData.Add(cell.Value.ToString());
+                            }
                         }
                     }
 
@@ -273,6 +318,14 @@ namespace PayCheckCalculatorWinForms
             }
 
             MessageBox.Show($"Celkový počet odpracovaných hodin je {totalHours}", "Součet hodin");
+        }
+        // Clear data in DataGridView
+        private void ClearData(object  sender, EventArgs e)
+        {
+            var clear = MessageBox.Show("Opravdu chcete smazat všechna data?", "Smazat data", MessageBoxButtons.YesNo);
+            if (clear == DialogResult.No) return;
+            dataGridView1.Rows.Clear();
+            PrepareForm();
         }
     }
 }
