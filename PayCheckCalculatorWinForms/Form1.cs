@@ -133,14 +133,14 @@ namespace PayCheckCalculatorWinForms
                         var cell = newRow.Cells[i];
                         var value = values[i];
 
-                        if (cell is DataGridViewTextBoxCell)
+                        if (dataGridView1.Columns[i] is DataGridViewTextBoxColumn)
                         {
                             cell.Value = value;
                         }
                         else
-                            switch (cell)
+                            switch (dataGridView1.Columns[i])
                             {
-                                case DataGridViewDateTimePickerCell _:
+                                case DataGridViewDateTimePickerColumn _:
                                 {
                                     if (DateTime.TryParse(value, out DateTime dateValue))
                                     {
@@ -149,7 +149,7 @@ namespace PayCheckCalculatorWinForms
 
                                     break;
                                 }
-                                case DataGridViewTimePickerCell _:
+                                case DataGridViewTimePickerColumn _:
                                 {
                                     // Parse for StartTime and EndTime
                                     var timeFormat = "HH:mm";
@@ -221,6 +221,7 @@ namespace PayCheckCalculatorWinForms
                 }
             }
 
+            // Export data
             using (StreamWriter writer = new StreamWriter(saveFileDialog.FileName))
             {
                 // Header
@@ -319,8 +320,9 @@ namespace PayCheckCalculatorWinForms
 
             MessageBox.Show($"Celkový počet odpracovaných hodin je {totalHours}", "Součet hodin");
         }
+
         // Clear data in DataGridView
-        private void ClearData(object  sender, EventArgs e)
+        private void ClearData(object sender, EventArgs e)
         {
             var clear = MessageBox.Show("Opravdu chcete smazat všechna data?", "Smazat data", MessageBoxButtons.YesNo);
             if (clear == DialogResult.No) return;
